@@ -6,6 +6,8 @@ public class VoteDTO {
 
     private int competitorId;
 
+    private String reason;
+
     public VoteDTO() {
     }
 
@@ -23,5 +25,13 @@ public class VoteDTO {
 
     public void setCompetitorId(int competitorId) {
         this.competitorId = competitorId;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

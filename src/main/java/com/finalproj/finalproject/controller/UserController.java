@@ -55,4 +55,14 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @GetMapping(path = "/getUserFromToken")
+    public ResponseEntity getUserFromToken(Principal principal) throws Exception {
+        return userService.getUserFromToken(principal);
+    }
+
+    @GetMapping(path = "/voteState")
+    public ResponseEntity getVoteState(Principal principal){
+        return userService.getVoteState(principal);
+    }
+
 }

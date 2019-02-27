@@ -4,10 +4,7 @@ import com.finalproj.finalproject.configuration.ApiParameters;
 import com.finalproj.finalproject.dto.*;
 import com.finalproj.finalproject.jwt.JwtGenerator;
 import com.finalproj.finalproject.model.*;
-import com.finalproj.finalproject.repository.CompetitorsRepository;
-import com.finalproj.finalproject.repository.DepartmentRepository;
-import com.finalproj.finalproject.repository.UserRepository;
-import com.finalproj.finalproject.repository.UserRoleRepository;
+import com.finalproj.finalproject.repository.*;
 import com.finalproj.finalproject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -33,8 +30,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRoleRepository userRoleRepository;
 
-    @Autowired
-    private final BCryptPasswordEncoder bCryptPasswordEncoder ;
+    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -42,9 +38,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private CompetitorsRepository competitorsRepository;
 
-    public UserServiceImpl(BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
+    @Autowired
+    private CompetitorReasonRepository competitorReasonRepository;
+
 
     @Override
     public ResponseEntity<?> saveNewUser(UserDTO userDTO) throws Exception {
@@ -87,6 +83,8 @@ public class UserServiceImpl implements UserService {
             throw new Exception(e);
         }
     }
+
+//    public ResponseEntity<?> getUserByAccessToken()
 
     @Override
     public  ResponseEntity<?> saveCompetitor(CompetitorDTO userDTO) throws Exception {
@@ -166,7 +164,10 @@ public class UserServiceImpl implements UserService {
             return new ResponseEntity<>(new ResponseModel("Invalid attempt",false),HttpStatus.BAD_REQUEST);
         }
 
+
+
         try {
+
             user.setVoted(true);
             userRepository.save(user);
 
@@ -174,9 +175,24 @@ public class UserServiceImpl implements UserService {
             int votes = competitors.getVotes();
             votes += 1;
             competitors.setVotes(votes);
-            competitorsRepository.save(competitors);
 
-            return new ResponseEntity<>(new ResponseModel("Vote Added Successfully",true),HttpStatus.OK);
+            if(!voteDTO.getReason().trim().isEmpty()) {
+                CompetitorReason competitorReason = new CompetitorReason();
+                competitorReason.setReason(voteDTO.getReason());
+                competitorReason = competitorReasonRepository.save(competitorReason);
+
+                List<CompetitorReason> competitorReasons = competitors.getCompetitorReason();
+                if(competitorReasons.isEmpty()){
+                    competitorReasons = new ArrayList<>();
+                }
+                competitorReasons.add(competitorReason);
+
+                competitors.setCompetitorReason(competitorReasons);
+            }
+
+            competitors = competitorsRepository.save(competitors);
+
+            return new ResponseEntity<>(competitors,HttpStatus.OK);
         } catch (Exception e){
             return new ResponseEntity<>(new ResponseModel("Something went Wrong",false),HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -189,6 +205,44 @@ public class UserServiceImpl implements UserService {
         }   else {
             return new ResponseEntity<>(userList,HttpStatus.OK);
         }
+    }
+
+    @Override
+    public ResponseEntity<?> getUserFromToken(Principal principal) throws Exception {
+        Optional<User> optionalUser =  userRepository.findById(Integer.parseInt(principal.getName()));
+        if(!optionalUser.isPresent()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        AuthToken authToken = new AuthToken();
+        authToken.setRefreshToken(optionalUser.get().getRefeshToken());
+        authToken.setAccessToken(principal.toString());
+        DisplayUserDTO displayUserDTO = new DisplayUserDTO();
+        displayUserDTO.setAuthToken(authToken);
+        displayUserDTO.setEmail(optionalUser.get().getEmail());
+        displayUserDTO.setUserId(optionalUser.get().getUserId());
+        displayUserDTO.setName(optionalUser.get().getName());
+        displayUserDTO.setUserName(optionalUser.get().getUsername());
+        displayUserDTO.setUserRole(optionalUser.get().getUserRole());
+
+        try {
+            return new ResponseEntity<>(displayUserDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    public ResponseEntity<?> getVoteState (Principal principal){
+        Optional<User> optionalUser =  userRepository.findById(Integer.parseInt(principal.getName()));
+        if(!optionalUser.isPresent()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        VoteStateDTO voteStateDTO = new VoteStateDTO();
+        if(optionalUser.get().isVoted()){
+            voteStateDTO.setVoteState(true);
+        } else {
+            voteStateDTO.setVoteState(false);
+        }
+            return new ResponseEntity<>(voteStateDTO,HttpStatus.OK);
     }
 
     @Override
@@ -225,6 +279,7 @@ public class UserServiceImpl implements UserService {
             displayUserDTO.setUserId(optionalUser.get().getUserId());
             displayUserDTO.setName(optionalUser.get().getName());
             displayUserDTO.setUserName(optionalUser.get().getUsername());
+            displayUserDTO.setUserRole(optionalUser.get().getUserRole());
 
             return new ResponseEntity<>(displayUserDTO, HttpStatus.OK);
             } else {
@@ -232,10 +287,6 @@ public class UserServiceImpl implements UserService {
                 responseModel.setStatus(false);
                 return new ResponseEntity<>(responseModel,HttpStatus.UNAUTHORIZED);
             }
-
-
-
-
     }
 
     @Override

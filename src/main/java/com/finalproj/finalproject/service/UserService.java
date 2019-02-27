@@ -22,4 +22,7 @@ public interface UserService {
 
     ResponseEntity<?> getAllUsers();
 
+    ResponseEntity<?> getUserFromToken(Principal principal) throws Exception;
+
+    ResponseEntity<?> getVoteState (Principal principal);
 }

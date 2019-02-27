@@ -1,6 +1,7 @@
 package com.finalproj.finalproject.model;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "competitor")
@@ -19,6 +20,10 @@ public class Competitors {
     private User user;
 
     private int votes;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "competitorReason")
+    private List<CompetitorReason> competitorReason;
 
     public Competitors() {
     }
@@ -53,5 +58,13 @@ public class Competitors {
 
     public void setDepartment(Department department) {
         this.department = department;
+    }
+
+    public List<CompetitorReason> getCompetitorReason() {
+        return competitorReason;
+    }
+
+    public void setCompetitorReason(List<CompetitorReason> competitorReason) {
+        this.competitorReason = competitorReason;
     }
 }

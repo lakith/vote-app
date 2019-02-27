@@ -16,7 +16,7 @@ public class DepartmentController {
     @Autowired
     DepartmentService departmentService;
 
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity saveDepartment(@RequestBody @Valid Department department) throws Exception {
         return departmentService.saveDepartment(department);
     }

@@ -1,5 +1,7 @@
 package com.finalproj.finalproject.dto;
 
+import com.finalproj.finalproject.model.UserRole;
+
 public class DisplayUserDTO {
 
     private AuthToken authToken;
@@ -11,6 +13,8 @@ public class DisplayUserDTO {
     private String email;
 
     private String userName;
+
+    private UserRole userRole;
 
     private int expiration = 365*24*60*60;
 
@@ -63,5 +67,13 @@ public class DisplayUserDTO {
 
     public void setExpiration(int expiration) {
         this.expiration = expiration;
+    }
+
+    public UserRole getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(UserRole userRole) {
+        this.userRole = userRole;
     }
 }

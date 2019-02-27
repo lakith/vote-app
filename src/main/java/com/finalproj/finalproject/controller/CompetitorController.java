@@ -14,12 +14,12 @@ public class CompetitorController {
     CompetitorService competitorService;
 
     @GetMapping("/getAll")
-    private ResponseEntity getAllCompetitors(){
+    public ResponseEntity getAllCompetitors(){
         return competitorService.getAllCompetitors();
     }
 
     @GetMapping("/getAllByDepartment/{deptId}")
-    private ResponseEntity getAllCompetitorsByDepartmentId(@PathVariable("deptId") int deptId){
+    public ResponseEntity getAllCompetitorsByDepartmentId(@PathVariable("deptId") int deptId){
         return competitorService.getAllCompetitorsByDepartment(deptId);
     }
 
